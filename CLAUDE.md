@@ -185,9 +185,10 @@ es la relación usuario↔organización↔rol. Un consultor puede trabajar con
 pnpm install
 cp .env.example .env.local     # completar con las claves del proyecto
 
-# Traer las migraciones del proyecto remoto a local
+# Las 17 migraciones del Sprint 0 ya estan versionadas en supabase/migrations/,
+# verificadas por md5 contra la base viva. Solo hace falta linkear el proyecto
+# si vas a correr el CLI (db pull, gen types, functions deploy).
 supabase link --project-ref dfbxrytiigwczxhfsvzc
-supabase db pull                # regenera supabase/migrations/ desde la base viva
 
 pnpm dev
 ```

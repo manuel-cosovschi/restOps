@@ -1,15 +1,22 @@
 # Migraciones
 
-Las 17 migraciones del Sprint 0 ya estan **aplicadas** en el proyecto remoto
-`dfbxrytiigwczxhfsvzc`. Para traerlas a este repo:
+Las 17 migraciones del Sprint 0 estan **aplicadas** en el proyecto remoto
+`dfbxrytiigwczxhfsvzc` y **versionadas en este directorio**, en el mismo orden
+en que se aplicaron.
+
+Se bajaron desde el historial de la base viva (`supabase_migrations.schema_migrations`)
+y cada archivo se verifico por md5 contra la fila de origen: los 17 coinciden
+byte a byte con lo que corrio en produccion. No son una transcripcion a mano.
+
+Para re-sincronizar despues de tocar el schema desde el Dashboard:
 
 ```bash
 supabase link --project-ref dfbxrytiigwczxhfsvzc
 supabase db pull
 ```
 
-Eso genera el archivo de migracion completo desde la base viva, con fidelidad
-exacta. No las reescribas a mano.
+No las reescribas a mano: una migracion aplicada es historia, no codigo editable.
+Si algo esta mal, se arregla con una migracion nueva (ver 16, que corrige a 12).
 
 ## Orden aplicado
 
