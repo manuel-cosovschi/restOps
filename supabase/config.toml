@@ -1,0 +1,60 @@
+# ============================================================
+# RestOps · Configuracion de Supabase
+# ============================================================
+project_id = "restops"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+# OJO: `restops` NO se expone. Es el schema privado de helpers de seguridad.
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+secure_password_change = true
+
+# ------------------------------------------------------------
+# CRITICO: este hook inyecta org_id / membership_id / org_role /
+# location_ids en el JWT. Sin el, RLS niega todo porque los
+# claims vienen vacios.
+#
+# En el proyecto remoto hay que habilitarlo a mano:
+#   Dashboard -> Authentication -> Hooks
+#   -> Customize Access Token (JWT) Claims
+#   -> public.custom_access_token_hook -> Enable
+# ------------------------------------------------------------
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
+[storage]
+enabled = true
+file_size_limit = "25MiB"
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
+
+[functions.pin-login]
+# Login de kiosco: valida deviceToken + PIN, no un JWT existente.
+verify_jwt = false
