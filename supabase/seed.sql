@@ -60,7 +60,10 @@ begin
   insert into public.subscription (organization_id, plan, status, billing_cycle,
                                    unit_price_usd, locations_included,
                                    trial_ends_at, current_period_start, current_period_end)
-  values (v_org, 'local', 'trialing', 'monthly', 25.00, 2,
+  -- Plan 'chain': el seed crea 2 locales y 'local' admite uno solo
+  -- (plan_limit.max_locations = 1). Con el guard de la migracion 18 el
+  -- segundo insert de location rebotaria.
+  values (v_org, 'chain', 'trialing', 'monthly', 19.00, 2,
           now() + interval '14 days', now(), now() + interval '1 month');
 
   insert into public.location (organization_id, name, slug, address, city, province,
