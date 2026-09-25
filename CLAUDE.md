@@ -22,7 +22,32 @@ bien, qué falló hoy y quién lo está resolviendo."*
 **Sprint 0 — COMPLETO.** La base de datos está creada, migrada, con RLS,
 triggers, cron y seed cargado. Verificada end-to-end.
 
-**Sprint 1 — SIGUIENTE.** Auth + tenancy + CRUD de locales/usuarios en Next.js.
+**Sprint 1 — CASI COMPLETO.** Auth, tenancy y ABM de locales y equipo andan.
+Falta una sola cosa: la **invitación de miembros por email**, que necesita
+crear el usuario en `auth.users` con service role y por la regla 2 no puede
+vivir en un route handler. Va como Edge Function, al lado de `pin-login`.
+
+Lo que se agregó en el Sprint 1:
+
+- Login, signup y logout. El signup crea organización + membresía owner +
+  suscripción en **una** transacción (`create_organization_with_owner`),
+  porque un usuario recién creado todavía no tiene claims y RLS le niega todo
+- Selector de organización multi-org, con refresh de token obligatorio
+- ABM de locales, con límite de plan que devuelve **402 + link de upgrade**
+  (el guard real es un trigger, no el handler)
+- Equipo: rol, alcance por local y PIN de kiosco hasheado con bcrypt **en la
+  base** (`set_membership_pin`); el texto plano nunca toca el servidor
+- Guard de último dueño: la organización no puede quedarse sin owner activo
+- Test de aislamiento multi-tenant con 8 aserciones, que se limpia solo
+- Layouts separados: admin (denso) y kiosco (una mano, 56px)
+
+Dos bugs de Sprint 0 que encontró el test de aislamiento, ya corregidos:
+
+- `restops.jwt_claim()` casteaba `request.jwt.claims` a jsonb sin contemplar
+  la cadena vacía, y reventaba el audit trigger de las 16 tablas auditadas
+  (migración 20)
+- El borrado duro de una organización era imposible: el audit trigger
+  insertaba una fila que referenciaba la org recién borrada (migración 21)
 
 Lo que YA existe y funciona:
 
@@ -34,8 +59,8 @@ Lo que YA existe y funciona:
 - 4 vistas de dashboard con `security_invoker`
 - Seed: org "Grupo Costa", 2 locales, 5 usuarios, 3 checklists gastronómicas
 
-Lo que NO existe todavía: **nada del frontend**. `apps/web` tiene solo las
-librerías base (clientes Supabase, cola offline, tipos). No hay páginas.
+Lo que NO existe todavía: editor de templates (Sprint 2), ejecución de
+checklists y kiosco (Sprint 3). El layout de kiosco está creado pero vacío.
 
 ---
 
@@ -139,12 +164,14 @@ restops/
 │  ├─ rbac/                  matriz de permisos (front + back)
 │  └─ contracts/             esquemas Zod compartidos
 ├─ supabase/
-│  ├─ migrations/            17 migraciones aplicadas
+│  ├─ migrations/            21 migraciones aplicadas
 │  ├─ functions/pin-login/   Edge Function — login de kiosco
+│  ├─ tests/                 aislamiento multi-tenant (SQL, se limpia solo)
 │  └─ seed.sql
 └─ docs/
    ├─ erd.md
    ├─ verificacion.md        cómo probar que todo anda
+   ├─ verificacion-sprint-1.md
    └─ adr/                   decisiones de arquitectura
 ```
 
@@ -251,8 +278,8 @@ Verificás que quedó bien logueándote y mirando el JWT: tiene que traer
 | # | Sprint | Estado |
 |---|---|---|
 | 0 | Cimientos: schema, RLS, triggers, cron, seed | ✅ |
-| 1 | Tenancy + Auth + CRUD locales/usuarios | ← acá estamos |
-| 2 | Editor de templates versionadas |  |
+| 1 | Tenancy + Auth + CRUD locales/usuarios | ✅ salvo invitación por email |
+| 2 | Editor de templates versionadas | ← acá estamos |
 | 3 | Ejecución + offline + kiosco + PIN | ← acá hay demo |
 | 4 | Temperaturas + excepciones + gráficos |  |
 | 5 | Incidencias + activos |  |

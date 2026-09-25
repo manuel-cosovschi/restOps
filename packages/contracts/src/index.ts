@@ -86,6 +86,20 @@ export const inviteMemberSchema = z.object({
   { message: 'Asigna al menos un local', path: ['locationIds'] },
 );
 
+/** Edicion de una membresia existente. El email y el usuario no se tocan
+ *  desde aca: el usuario es global y puede estar en otras organizaciones. */
+export const updateMemberSchema = z.object({
+  role: roleSchema.optional(),
+  displayName: z.string().trim().min(2).max(120).optional(),
+  employeeCode: z.string().max(24).nullable().optional(),
+  jobTitle: z.string().max(80).nullable().optional(),
+  status: z.enum(['active', 'inactive', 'suspended']).optional(),
+  locationIds: z.array(uuid).optional(),
+}).refine(
+  (v) => Object.values(v).some((x) => x !== undefined),
+  { message: 'No hay cambios para guardar' },
+);
+
 export const setPinSchema = z.object({
   membershipId: uuid,
   pin: z.string().regex(/^\d{4}$/, 'El PIN son 4 digitos')
@@ -281,6 +295,7 @@ export type SignUp = z.infer<typeof signUpSchema>;
 export type PinLogin = z.infer<typeof pinLoginSchema>;
 export type LocationInput = z.infer<typeof locationSchema>;
 export type InviteMember = z.infer<typeof inviteMemberSchema>;
+export type UpdateMember = z.infer<typeof updateMemberSchema>;
 export type ChecklistTemplateInput = z.infer<typeof checklistTemplateSchema>;
 export type ChecklistItemInput = z.infer<typeof checklistItemSchema>;
 export type RecurrenceInput = z.infer<typeof recurrenceSchema>;

@@ -1,3 +1,102 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/**
+ * Tokens. Modo claro y oscuro: una cocina tiene luz mala y vapor, y una
+ * tablet montada en la pared suele quedar en oscuro.
+ */
+:root {
+  --fondo: 0 0% 100%;
+  --texto: 222 24% 12%;
+  --tenue: 222 10% 42%;
+  --borde: 222 14% 88%;
+  --superficie: 222 20% 98%;
+  --acento: 158 72% 28%;
+  --acento-texto: 0 0% 100%;
+  --peligro: 0 72% 44%;
+  --alerta: 32 90% 42%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --fondo: 222 24% 8%;
+    --texto: 210 20% 96%;
+    --tenue: 215 14% 65%;
+    --borde: 222 16% 22%;
+    --superficie: 222 22% 12%;
+    --acento: 158 62% 44%;
+    --acento-texto: 222 24% 8%;
+    --peligro: 0 72% 60%;
+    --alerta: 32 90% 58%;
+  }
+}
+
+:root[data-theme='dark'] {
+  --fondo: 222 24% 8%;
+  --texto: 210 20% 96%;
+  --tenue: 215 14% 65%;
+  --borde: 222 16% 22%;
+  --superficie: 222 22% 12%;
+  --acento: 158 62% 44%;
+  --acento-texto: 222 24% 8%;
+  --peligro: 0 72% 60%;
+  --alerta: 32 90% 58%;
+}
+
+@layer base {
+  body {
+    background-color: hsl(var(--fondo));
+    color: hsl(var(--texto));
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* El foco tiene que verse con guantes y a contraluz */
+  :focus-visible {
+    outline: 2px solid hsl(var(--acento));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .campo {
+    @apply w-full rounded-lg border px-3 py-2.5 text-base;
+    border-color: hsl(var(--borde));
+    background-color: hsl(var(--fondo));
+    color: hsl(var(--texto));
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-sm font-medium;
+  }
+
+  .boton {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5
+           text-sm font-semibold transition-opacity disabled:opacity-50;
+    background-color: hsl(var(--acento));
+    color: hsl(var(--acento-texto));
+  }
+
+  .boton-secundario {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5
+           text-sm font-semibold disabled:opacity-50;
+    border-color: hsl(var(--borde));
+    color: hsl(var(--texto));
+  }
+
+  /* Botonera de kiosco: una mano, guantes, apuro */
+  .boton-kiosco {
+    @apply flex w-full items-center justify-between rounded-xl px-5 text-lg font-semibold;
+    min-height: 56px;
+  }
+
+  .tarjeta {
+    @apply rounded-xl border p-4;
+    border-color: hsl(var(--borde));
+    background-color: hsl(var(--superficie));
+  }
+
+  .tenue {
+    color: hsl(var(--tenue));
+  }
+}

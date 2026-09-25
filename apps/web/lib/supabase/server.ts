@@ -7,6 +7,7 @@
  * y solo en jobs, nunca atendiendo a un usuario.
  */
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types/database';
 import type { AuthContext, Role } from '@restops/rbac';
@@ -72,6 +73,7 @@ export async function getAuthContext(): Promise<AuthContext & { userId: string |
 function decodeJwt(token: string): JwtClaims {
   try {
     const payload = token.split('.')[1];
+    if (!payload) return {};
     const json = Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString();
     return JSON.parse(json) as JwtClaims;
   } catch {
@@ -84,7 +86,6 @@ function decodeJwt(token: string): JwtClaims {
  * Bypassea RLS: si lo usas en un handler de usuario, filtras datos.
  */
 export function createAdminClient() {
-  const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
   return createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

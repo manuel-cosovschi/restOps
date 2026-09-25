@@ -2464,7 +2464,19 @@ export type Database = {
       }
     }
     Functions: {
+      create_organization_with_owner: {
+        Args: { p_org_name: string; p_full_name?: string | null }
+        Returns: string
+      }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      set_membership_pin: {
+        Args: { p_membership_id: string; p_pin: string }
+        Returns: undefined
+      }
+      switch_organization: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
     }
     Enums: {
       actor_type: "user" | "system" | "ai"

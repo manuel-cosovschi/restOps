@@ -1,13 +1,32 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
-      "@/*": ["./*"],
-      "@restops/rbac": ["../../packages/rbac/src/index.ts"],
-      "@restops/contracts": ["../../packages/contracts/src/index.ts"]
-    }
+      "@/*": [
+        "./*"
+      ],
+      "@restops/rbac": [
+        "../../packages/rbac/src/index.ts"
+      ],
+      "@restops/contracts": [
+        "../../packages/contracts/src/index.ts"
+      ]
+    },
+    "allowJs": true,
+    "noEmit": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
