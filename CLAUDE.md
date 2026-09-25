@@ -212,7 +212,7 @@ es la relación usuario↔organización↔rol. Un consultor puede trabajar con
 pnpm install
 cp .env.example .env.local     # completar con las claves del proyecto
 
-# Las 17 migraciones del Sprint 0 ya estan versionadas en supabase/migrations/,
+# Las 21 migraciones ya estan versionadas en supabase/migrations/,
 # verificadas por md5 contra la base viva. Solo hace falta linkear el proyecto
 # si vas a correr el CLI (db pull, gen types, functions deploy).
 supabase link --project-ref dfbxrytiigwczxhfsvzc
@@ -236,32 +236,51 @@ Son credenciales de demo. No las lleves a producción.
 
 ---
 
-## PENDIENTE MANUAL — hacer antes del Sprint 1
+## Hook de JWT — ACTIVADO
 
-El hook de JWT **está creado pero no activado**. Sin esto los claims vienen
-vacíos y RLS te niega todo.
+El custom access token hook está habilitado en el proyecto y verificado con
+logins reales: `owner@restops.demo` recibe `org_role: owner` con los 2 locales,
+y `cocina@restops.demo` recibe `org_role: employee` con 1 solo.
 
-Dashboard → Authentication → Hooks → Customize Access Token (JWT) Claims
-→ elegir `public.custom_access_token_hook` → Enable.
+Si levantás **otro** proyecto Supabase (staging, local, un fork), esto es
+configuración del proyecto y **no viaja en las migraciones**. Hay que repetirlo
+a mano: Dashboard → Authentication → Hooks → *Customize Access Token (JWT)
+Claims* → `public.custom_access_token_hook` → Enable.
 
-Verificás que quedó bien logueándote y mirando el JWT: tiene que traer
-`org_id` y `org_role`.
+Para comprobar que quedó bien sin adivinar:
+
+```bash
+curl -sS -X POST "https://<ref>.supabase.co/auth/v1/token?grant_type=password" \
+  -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" -H "Content-Type: application/json" \
+  -d '{"email":"owner@restops.demo","password":"RestOps2026!"}' \
+| python3 -c "import sys,json,base64; t=json.load(sys.stdin)['access_token'].split('.')[1]; \
+print(json.loads(base64.urlsafe_b64decode(t+'='*(-len(t)%4))).get('org_role','SIN CLAIMS'))"
+```
+
+Si imprime `SIN CLAIMS`, el hook no está activo y RLS va a negar todo.
 
 ---
 
-## Sprint 1 — qué construir ahora
+## Sprint 2 — qué construir ahora
 
-1. **Middleware de sesión** (`apps/web/lib/supabase/middleware.ts` ya está)
-   — refresh de cookies en cada request.
-2. **Login / signup** — signup crea org + membership owner en una transacción
-   (hacelo con una función Postgres `security definer`, no con 3 inserts
-   sueltos desde el cliente).
-3. **Selector de organización** — actualiza `active_organization_id` y fuerza
-   refresh del token.
-4. **CRUD de locales** — respetando `plan_limit.max_locations` (402 + link de
-   upgrade cuando se pasa, no un 403 genérico).
-5. **CRUD de miembros** — invitación por email, asignación de locales, set PIN.
-6. **Layout admin + layout kiosco** — dos árboles de UI distintos.
+Editor de templates de checklist. Acá se juega la regla 5: **una checklist
+publicada es inmutable**, y la base ya lo bloquea (`guard_published_template`
+y `guard_published_items`, migración 11). El editor tiene que trabajar
+*con* esa restricción, no pelearse con ella.
+
+1. **Listado de templates** — agrupadas por familia de versiones
+   (`coalesce(parent_template_id, id)`), mostrando cuál es la publicada vigente.
+2. **Editor de borrador** — secciones, items ordenables, y la config por tipo
+   de item (rango numérico, opciones del select, min/max de fotos).
+   Los items de temperatura obligan a elegir un `temperature_point`.
+3. **Publicar** — pasa el borrador a `published` y sella `published_at`.
+   A partir de ahí no se toca más.
+4. **Nueva versión** — clona la publicada como borrador N+1 con el mismo
+   `parent_template_id`. Es el único camino para "editar" una publicada.
+5. **Reglas de recurrencia** — frecuencia, días, horarios y tolerancia.
+   El generador nocturno (`generate_runs`) ya las consume.
+6. **ABM de puntos de temperatura y activos** — un item de temperatura no
+   existe sin su punto de control.
 
 **Definition of done del sprint:**
 - Migración aplicada si tocaste el schema
